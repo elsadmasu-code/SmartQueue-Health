@@ -1,0 +1,18 @@
+# Dependencies
+/backend/vendor/
+/frontend/node_modules/
+/frontend/dist/
+/mobile/.dart_tool/
+/mobile/.flutter-plugins
+/mobile/.flutter-plugins-dependencies
+/mobile/build/
+
+# Database & SQLite files
+/backend/database/*.sqlite
+/backend/database/*.sqlite-journal
+
+# Environment & logs
+/backend/.env
+*.log
+.DS_Store
+Thumbs.db
