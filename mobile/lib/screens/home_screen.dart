@@ -4,6 +4,7 @@ import 'queue_tracker_screen.dart';
 import 'med_reminder_screen.dart';
 import 'chatbot_screen.dart';
 import 'offline_sync_screen.dart';
+import 'appointment_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final String currentLang;
@@ -215,6 +216,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   subtitle: 'Multilingual chat',
                   color: const Color(0xFFF5F3FF),
                   onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ChatbotScreen(currentLang: lang))),
+                ),
+                _buildGridItem(
+                  icon: '📅',
+                  title: AppStrings.get('appointments', lang: lang),
+                  subtitle: 'Doctor slots & booking',
+                  color: const Color(0xFFFDF2F8),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => AppointmentScreen(currentLang: lang))),
                 ),
                 _buildGridItem(
                   icon: '🔄',

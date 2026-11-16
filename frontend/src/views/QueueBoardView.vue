@@ -221,6 +221,16 @@ const testAudioChime = () => {
     gain.connect(ctx.destination);
     osc.start();
     osc.stop(ctx.currentTime + 0.6);
+
+    // Voice announcement
+    if ('speechSynthesis' in window) {
+      setTimeout(() => {
+        const text = 'Attention please. Ticket O P D 0 0 1, please proceed to O P D Room 104.';
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.rate = 0.88;
+        window.speechSynthesis.speak(utterance);
+      }, 700);
+    }
   } catch (e) {
     console.log('Audio chime simulated');
   }
