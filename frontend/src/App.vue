@@ -25,7 +25,7 @@
             </div>
           </router-link>
 
-          <!-- Facility Indicator & Role Switcher -->
+          <!-- Facility Indicator, Language & Role Switcher -->
           <div class="flex items-center gap-3">
             <!-- Public Queue Monitor Direct Link -->
             <router-link 
@@ -43,14 +43,28 @@
               {{ currentLang === 'en' ? 'አማርኛ' : 'English' }}
             </button>
 
-            <!-- Current User Badge -->
+            <!-- Interactive Demo Role Switcher Dropdown -->
             <div class="flex items-center gap-2 pl-2 border-l border-slate-200">
-              <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-800 flex items-center justify-center font-bold text-xs">
-                AT
+              <div class="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
+                {{ currentUser.initials }}
               </div>
-              <div class="text-left hidden lg:block">
-                <div class="text-xs font-bold text-slate-900 leading-none">Dr. Almaz Tefera</div>
-                <div class="text-[10px] text-slate-400">Internal Medicine • TASH</div>
+              <div class="text-left">
+                <div class="flex items-center gap-1">
+                  <select 
+                    :value="currentUser.email" 
+                    @change="onRoleChange($event.target.value)"
+                    class="text-xs font-bold text-slate-900 bg-slate-100 hover:bg-slate-200 rounded-md px-1.5 py-0.5 border border-slate-300 cursor-pointer focus:ring-1 focus:ring-blue-600 outline-none"
+                    title="Switch Demo Role"
+                  >
+                    <option v-for="u in demoUsers" :key="u.email" :value="u.email">
+                      {{ u.name }} ({{ u.role }})
+                    </option>
+                  </select>
+                </div>
+                <div class="text-[10px] text-emerald-600 font-semibold flex items-center gap-1 pl-1">
+                  <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                  <span>{{ isLoggingIn ? 'Authenticating...' : 'Authenticated • TASH' }}</span>
+                </div>
               </div>
             </div>
           </div>
@@ -104,13 +118,62 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import api from './api/client.js';
 
 const currentLang = ref('en');
+const isLoggingIn = ref(false);
 
 const toggleLang = () => {
   currentLang.value = currentLang.value === 'en' ? 'am' : 'en';
 };
+
+const demoUsers = [
+  { email: 'doctor@smartqueue.et', name: 'Dr. Almaz Tefera', role: 'Doctor (Internal Med)', initials: 'AT' },
+  { email: 'nurse@smartqueue.et', name: 'Sr. Hiwot Tadesse', role: 'Nurse (Triage)', initials: 'HT' },
+  { email: 'pharmacist@smartqueue.et', name: 'Pharm. Yohannes Bekele', role: 'Chief Pharmacist', initials: 'YB' },
+  { email: 'lab@smartqueue.et', name: 'Tech. Mulugeta Desta', role: 'Lab Technologist', initials: 'MD' },
+  { email: 'cashier@smartqueue.et', name: 'Cashier Almaz Worku', role: 'Cashier / Billing', initials: 'AW' },
+  { email: 'admin@smartqueue.et', name: 'Admin Dawit Haile', role: 'Super Admin', initials: 'DH' },
+  { email: 'patient@smartqueue.et', name: 'Abebe Bikila', role: 'Patient', initials: 'AB' },
+];
+
+const selectedUserEmail = ref(localStorage.getItem('sqhm_user_email') || 'doctor@smartqueue.et');
+const currentUser = computed(() => {
+  return demoUsers.find(u => u.email === selectedUserEmail.value) || demoUsers[0];
+});
+
+const loginAs = async (email) => {
+  isLoggingIn.value = true;
+  try {
+    const res = await api.post('/auth/login', {
+      email,
+      password: 'password123',
+    });
+    if (res.data?.token) {
+      localStorage.setItem('sqhm_token', res.data.token);
+      localStorage.setItem('sqhm_user_email', email);
+      selectedUserEmail.value = email;
+    }
+  } catch (err) {
+    console.error('Demo auto-login failed:', err);
+  } finally {
+    isLoggingIn.value = false;
+  }
+};
+
+const onRoleChange = async (newEmail) => {
+  await loginAs(newEmail);
+  // Optionally reload to re-fetch view data with new role permissions
+  window.location.reload();
+};
+
+onMounted(() => {
+  // Ensure token exists on startup
+  if (!localStorage.getItem('sqhm_token')) {
+    loginAs(selectedUserEmail.value);
+  }
+});
 
 const navItems = [
   { name: 'Dashboard', nameAm: 'ዳሽቦርድ', path: '/', icon: '📊' },
